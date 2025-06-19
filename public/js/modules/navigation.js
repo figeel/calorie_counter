@@ -1,6 +1,19 @@
+import { logout } from './auth.js';
+
+// Глобальный обработчик для всей навигации
+let navigationHandler = null;
+
 export function initNavigation(currentUser) {
     renderNavigation(currentUser);
-    setupNavigationHandlers();
+    
+    // Удаляем старый обработчик, если он был
+    if (navigationHandler) {
+        document.body.removeEventListener('click', navigationHandler);
+    }
+    
+    // Создаем новый обработчик
+    navigationHandler = handleNavigationEvents;
+    document.body.addEventListener('click', navigationHandler);
 }
 
 export function renderNavigation(currentUser) {
@@ -24,29 +37,47 @@ export function renderNavigation(currentUser) {
     `;
 }
 
-function setupNavigationHandlers() {
-    document.querySelectorAll('nav a[data-section]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const section = link.getAttribute('data-section');
-            showSection(section);
-        });
-    });
+function handleNavigationEvents(e) {
+    // Обработка навигационных ссылок
+    if (e.target.matches('nav a[data-section]')) {
+        e.preventDefault();
+        const section = e.target.getAttribute('data-section');
+        showSection(section);
+        return;
+    }
     
-    document.getElementById('logout')?.addEventListener('click', () => {
-        if (typeof logout === 'function') logout();
-    });
+    // Обработка кнопки выхода
+    if (e.target.id === 'logout') {
+        e.preventDefault();
+        logout();
+        return;
+    }
+    
+    // Обработка переключения форм
+    if (e.target.id === 'show-register') {
+        e.preventDefault();
+        showSection('register');
+        return;
+    }
+    
+    if (e.target.id === 'show-login') {
+        e.preventDefault();
+        showSection('login');
+        return;
+    }
 }
 
 export function showSection(sectionId) {
+    // Скрыть все секции
     document.querySelectorAll('main > section').forEach(section => {
-        section.classList.toggle('hidden-section', true);
-        section.classList.toggle('active-section', false);
+        section.classList.add('hidden-section');
+        section.classList.remove('active-section');
     });
 
+    // Показать выбранную секцию
     const activeSection = document.getElementById(`${sectionId}-section`);
     if (activeSection) {
-        activeSection.classList.toggle('hidden-section', false);
-        activeSection.classList.toggle('active-section', true);
+        activeSection.classList.remove('hidden-section');
+        activeSection.classList.add('active-section');
     }
 }

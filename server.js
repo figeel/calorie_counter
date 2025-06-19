@@ -154,3 +154,78 @@ app.post('/api/products', authenticate, (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на http://localhost:${PORT}`);
 });
+
+// Middleware для проверки прав администратора
+function isAdmin(req, res, next) {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Требуются права администратора' });
+    }
+    next();
+}
+
+// Получение списка пользователей
+app.get('/api/admin/users', authenticate, isAdmin, (req, res) => {
+    try {
+        // Не возвращаем пароли
+        const users = db.prepare('SELECT id, email, role, created_at FROM users').all();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка получения пользователей' });
+    }
+});
+
+// Изменение роли пользователя
+app.put('/api/admin/users/:id/role', authenticate, isAdmin, (req, res) => {
+    const userId = req.params.id;
+    const { role } = req.body;
+    
+    if (!['user', 'admin'].includes(role)) {
+        return res.status(400).json({ error: 'Недопустимая роль' });
+    }
+    
+    try {
+        db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка обновления роли' });
+    }
+});
+
+// Получение продуктов на модерации
+app.get('/api/admin/products/pending', authenticate, isAdmin, (req, res) => {
+    try {
+        const products = db.prepare(`
+            SELECT p.*, u.email as added_by_email 
+            FROM products p
+            JOIN users u ON p.added_by = u.id
+            WHERE p.is_approved = 0
+        `).all();
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка получения продуктов' });
+    }
+});
+
+// Одобрение продукта
+app.put('/api/admin/products/:id/approve', authenticate, isAdmin, (req, res) => {
+    const productId = req.params.id;
+    
+    try {
+        db.prepare('UPDATE products SET is_approved = 1 WHERE id = ?').run(productId);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка одобрения продукта' });
+    }
+});
+
+// Удаление продукта
+app.delete('/api/admin/products/:id', authenticate, isAdmin, (req, res) => {
+    const productId = req.params.id;
+    
+    try {
+        db.prepare('DELETE FROM products WHERE id = ?').run(productId);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка удаления продукта' });
+    }
+});
