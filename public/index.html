@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie Counter</title>
+    <link rel="stylesheet" href="css/global.css">
+</head>
+<body>
+    <header>
+        <h1>Подсчёт калорий</h1>
+        <nav id="nav">
+            <!-- Навигация будет сгенерирована JavaScript -->
+        </nav>
+    </header>
+
+    <main>
+        <!-- Калькулятор -->
+        <section id="calculator-section" class="active-section">
+            <h2>Калькулятор КБЖУ</h2>
+            <div class="search-container">
+                <input type="text" id="product-search" placeholder="Поиск продуктов...">
+                <div id="search-results"></div>
+            </div>
+            
+            <table id="selected-products">
+                <thead>
+                    <tr>
+                        <th>Продукт</th>
+                        <th>Вес (г)</th>
+                        <th>Кал</th>
+                        <th>Белки</th>
+                        <th>Жиры</th>
+                        <th>Углеводы</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                    <tr id="total-row">
+                        <td>Итого:</td>
+                        <td id="total-grams">0</td>
+                        <td id="total-calories">0</td>
+                        <td id="total-proteins">0</td>
+                        <td id="total-fats">0</td>
+                        <td id="total-carbs">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <!-- Форма входа -->
+        <section id="login-section" class="hidden-section">
+            <h2>Вход в систему</h2>
+            <form id="login-form">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Пароль" required>
+                <button type="submit">Войти</button>
+            </form>
+            <p>Еще нет аккаунта? <a href="#" id="show-register">Зарегистрироваться</a></p>
+        </section>
+
+        <!-- Форма регистрации -->
+        <section id="register-section" class="hidden-section">
+            <h2>Регистрация</h2>
+            <form id="register-form">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Пароль" required>
+                <input type="password" placeholder="Подтвердите пароль" required>
+                <button type="submit">Зарегистрироваться</button>
+            </form>
+            <p>Уже есть аккаунт? <a href="#" id="show-login">Войти</a></p>
+        </section>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

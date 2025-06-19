@@ -1,0 +1,7 @@
+# Файл .gitignore
+node_modules/
+calorie-counter.db
+.DS_Store
+.env
+*.log
+npm-debug.log*
