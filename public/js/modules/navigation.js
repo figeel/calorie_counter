@@ -26,6 +26,8 @@ export function renderNavigation(currentUser) {
             ${currentUser ? `
                 <li><span>Привет, ${currentUser.email}</span></li>
                 <li><a href="#" id="logout">Выйти</a></li>
+                <!-- Добавили кнопку добавления продукта -->
+                <li><a href="#" data-section="add-product">Добавить продукт</a></li>
                 ${currentUser.role === 'admin' ? `
                     <li><a href="#" data-section="admin">Админ-панель</a></li>
                 ` : ''}

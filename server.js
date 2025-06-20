@@ -229,3 +229,39 @@ app.delete('/api/admin/products/:id', authenticate, isAdmin, (req, res) => {
         res.status(500).json({ error: 'Ошибка удаления продукта' });
     }
 });
+
+app.post('/api/products', authenticate, (req, res) => {
+    const { name, calories, proteins, fats, carbs } = req.body;
+    const userId = req.user.id;
+
+    if (!name || !calories || !proteins || !fats || !carbs) {
+        return res.status(400).json({ error: 'Все поля обязательны' });
+    }
+
+    try {
+        // Проверяем, не существует ли уже продукт с таким названием
+        const existingProduct = db.prepare('SELECT * FROM products WHERE name = ?').get(name);
+        if (existingProduct) {
+            return res.status(400).json({ error: 'Продукт с таким названием уже существует' });
+        }
+
+        // Добавляем продукт с флагом is_approved = 0 (на модерации)
+        const result = db.prepare(`
+            INSERT INTO products (name, calories, proteins, fats, carbs, added_by, is_approved)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+        `).run(name, calories, proteins, fats, carbs, userId);
+
+        res.status(201).json({
+            id: result.lastInsertRowid,
+            name,
+            calories,
+            proteins,
+            fats,
+            carbs,
+            added_by: userId,
+            is_approved: 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка добавления продукта' });
+    }
+});

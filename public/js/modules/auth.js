@@ -57,4 +57,4 @@ export function logout() {
     initNavigation(null);
     showSection('calculator'); // Используем showSection
     alert('Вы успешно вышли из системы');
-}
+}   

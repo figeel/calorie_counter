@@ -3,6 +3,7 @@ import { initNavigation, showSection } from './navigation.js';
 import { initCalculator } from './calculator.js';
 import { initAuthForms } from './auth.js';
 import { initAdminPanel } from './admin.js';
+import { initProductForm } from './product.js'; // Добавляем импорт
 
 export function initApp() {
     // Загрузка состояния приложения
@@ -18,6 +19,11 @@ export function initApp() {
     // Инициализация админ-панели
     if (currentUser?.role === 'admin') {
         initAdminPanel();
+    }
+    
+    // Инициализация формы добавления продукта (для авторизованных)
+    if (currentUser) {
+        initProductForm();
     }
     
     // Показ стартового раздела

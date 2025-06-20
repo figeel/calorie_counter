@@ -89,3 +89,7 @@ export async function approveProduct(productId) {
 export async function deleteProduct(productId) {
     return apiRequest(`/admin/products/${productId}`, 'DELETE');
 }
+
+export async function addProduct(productData) {
+    return apiRequest('/products', 'POST', productData);
+}

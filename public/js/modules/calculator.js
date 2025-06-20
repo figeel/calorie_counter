@@ -1,4 +1,4 @@
-import { searchProducts } from './api.js';
+import { searchProducts as apiSearch } from './api.js';
 
 let selectedProducts = [];
 
@@ -16,8 +16,25 @@ async function handleSearch(e) {
         return;
     }
     
-    const products = await searchProducts(query);
-    displaySearchResults(products);
+    // Показываем индикатор загрузки
+    searchResults.innerHTML = '<div class="loading">Поиск продуктов...</div>';
+    
+    try {
+        const products = await searchApprovedProducts(query);
+        displaySearchResults(products);
+    } catch (error) {
+        searchResults.innerHTML = '<div class="error">Ошибка загрузки продуктов</div>';
+    }
+}
+
+async function searchApprovedProducts(query) {
+    try {
+        const allProducts = await apiSearch(query);
+        return allProducts.filter(product => product.is_approved === 1);
+    } catch (error) {
+        console.error('Ошибка поиска:', error);
+        return [];
+    }
 }
 
 function displaySearchResults(products) {
@@ -55,11 +72,25 @@ function renderSelectedProducts() {
     const tbody = document.querySelector('#selected-products tbody');
     tbody.innerHTML = '';
     
-    let totals = { grams: 0, calories: 0, proteins: 0, fats: 0, carbs: 0 };
+    let totals = { 
+        grams: 0, 
+        calories: 0, 
+        proteins: 0, 
+        fats: 0, 
+        carbs: 0 
+    };
     
     selectedProducts.forEach((product, index) => {
         const nutrients = calculateNutrients(product);
-        updateTotals(totals, nutrients);
+        
+        // Обновляем суммарный вес
+        totals.grams += product.grams;
+        
+        // Обновляем суммарные нутриенты
+        totals.calories += parseFloat(nutrients.calories);
+        totals.proteins += parseFloat(nutrients.proteins);
+        totals.fats += parseFloat(nutrients.fats);
+        totals.carbs += parseFloat(nutrients.carbs);
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -79,22 +110,18 @@ function renderSelectedProducts() {
     setupProductHandlers();
 }
 
+// Функция объявлена ОДИН РАЗ здесь
 function calculateNutrients(product) {
-    const ratio = product.grams / 100;
+    // Защита от нечисловых значений
+    const grams = isNaN(product.grams) ? 100 : product.grams;
+    const ratio = grams / 100;
+    
     return {
-        calories: (product.calories * ratio).toFixed(1),
-        proteins: (product.proteins * ratio).toFixed(1),
-        fats: (product.fats * ratio).toFixed(1),
-        carbs: (product.carbs * ratio).toFixed(1)
+        calories: ((product.calories || 0) * ratio).toFixed(1),
+        proteins: ((product.proteins || 0) * ratio).toFixed(1),
+        fats: ((product.fats || 0) * ratio).toFixed(1),
+        carbs: ((product.carbs || 0) * ratio).toFixed(1)
     };
-}
-
-function updateTotals(totals, nutrients) {
-    totals.grams += parseFloat(nutrients.grams);
-    totals.calories += parseFloat(nutrients.calories);
-    totals.proteins += parseFloat(nutrients.proteins);
-    totals.fats += parseFloat(nutrients.fats);
-    totals.carbs += parseFloat(nutrients.carbs);
 }
 
 function updateTotalRow(totals) {
@@ -109,17 +136,22 @@ function setupProductHandlers() {
     document.querySelectorAll('.grams-input').forEach(input => {
         input.addEventListener('change', (e) => {
             const index = parseInt(e.target.dataset.index);
-            const grams = parseInt(e.target.value) || 100;
-            selectedProducts[index].grams = grams;
-            renderSelectedProducts();
+            const grams = parseInt(e.target.value) || 100; // Защита от NaN
+            
+            if (index >= 0 && index < selectedProducts.length) {
+                selectedProducts[index].grams = grams;
+                renderSelectedProducts();
+            }
         });
     });
     
     document.querySelectorAll('.remove-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             const index = parseInt(e.target.dataset.index);
-            selectedProducts.splice(index, 1);
-            renderSelectedProducts();
+            if (index >= 0 && index < selectedProducts.length) {
+                selectedProducts.splice(index, 1);
+                renderSelectedProducts();
+            }
         });
     });
 }
